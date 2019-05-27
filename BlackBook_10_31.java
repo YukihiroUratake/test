@@ -1,5 +1,7 @@
 //Exceptionがスローされたmainメソッドが再スローの必要があるのかを確認
 
+//git
+
 class BlackBook_10_31{
     void test() throws Exception{
         System.out.println("test");
