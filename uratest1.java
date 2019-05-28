@@ -1,5 +1,7 @@
 //nに入れた数字が10以上ならtrue、それ以外ならfalseを返すプログラム
 
+//branch
+
 class uratest1{
     public static void main(String[] args){
         int n = 5;
