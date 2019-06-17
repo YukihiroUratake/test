@@ -1,0 +1,128 @@
+[
+    {
+        "id": "ef0d5b04.90bd28",
+        "type": "function",
+        "z": "b8abd5fc.77b22",
+        "name": "クエリ発行",
+        "func": "var tableName = msg.payload.table;  // テーブル名\n\n// ---create table文-----------------------------\n// ＜テーブルが存在しない場合のみ作成＞\nvar createTable = \"CREATE TABLE \"\t\t\t+\n                  \"IF NOT EXISTS \"\t\t\t+\n\t\t\t\t  tableName\t\t\t\t\t+\n\t\t\t\t  \" (answer varchar(10)\" \t+\n\t\t\t\t  \" not null primary key,\"\t+\n\t\t\t\t  \"score int,\"\t\t\t\t+\n\t\t\t\t  \"remarks varchar(100));\";\nmsg.topic = createTable;\n// ----------------------------------------------\n\n// ---select文-----------------------------------\n// ＜テーブルが既存の場合は情報を取得＞\n//（既存の場合はこの時点でデータが格納されている）\n//if\n//var selectTable = \n// ----------------------------------------------\n\n// ---insert文-----------------------------------\n// ＜選択肢の数に応じてレコードを挿入＞\n// 選択肢の数を取得（全要素からtable,answerを差し引く）\nvar cnt = Object.keys(msg.payload).length - 2;\nfor(var i=1; i<=cnt; i++)\n{\n// remarksに格納するデータをjsonのインデックスで取得\nvar remSet = msg.payload[Object.keys(msg.payload)[i+1]];\nvar insertData = \"INSERT IGNORE INTO \"\t\t+\n\t\t\t\t tableName\t\t\t\t\t+\n\t\t\t\t \" (answer,score,remarks)\"\t+\n\t\t\t\t \" VALUES('\"\t\t\t\t+\n\t\t\t\t \"ans\" + i      \t\t    +\n\t\t\t\t \"', 0, '\"\t\t\t\t\t+\n\t\t\t\t remSet\t\t\t\t\t\t+\n\t\t\t\t \"');\";\nmsg.topic = msg.topic + insertData;\n}\n// ----------------------------------------------\n\n// ---update文-----------------------------------\n// ＜テーブルに回答結果を反映（scoreを加算）＞\nvar selectWord = \"\" + msg.payload.answer;\nvar updateQuery = \"UPDATE \"\t\t\t\t+\n\t\t\t\t  tableName \t\t\t+\n\t\t\t\t  \" SET \" \t\t\t\t+\n\t\t\t\t  \"score = score + 1\"\t+\n\t\t\t\t  \" WHERE answer = '\"\t+\n\t\t\t\t  \"\" + selectWord\t\t+\n\t\t\t\t  \"';\";\nmsg.topic = msg.topic + updateQuery;\n// ----------------------------------------------\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 330,
+        "y": 80,
+        "wires": [
+            [
+                "ab4fc31a.ad5ed",
+                "ce38b515.25e548"
+            ]
+        ]
+    },
+    {
+        "id": "ab4fc31a.ad5ed",
+        "type": "mysql",
+        "z": "b8abd5fc.77b22",
+        "mydb": "c423cab4.b3f358",
+        "name": "データベース操作",
+        "x": 550,
+        "y": 80,
+        "wires": [
+            [
+                "81e4abc9.a5f9e8",
+                "112ebb78.caeb75"
+            ]
+        ]
+    },
+    {
+        "id": "ce38b515.25e548",
+        "type": "debug",
+        "z": "b8abd5fc.77b22",
+        "name": "クエリ発行",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload.answer",
+        "x": 550,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "81e4abc9.a5f9e8",
+        "type": "debug",
+        "z": "b8abd5fc.77b22",
+        "name": "DB出力",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 780,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "2b2448ca.c5bf68",
+        "type": "http in",
+        "z": "b8abd5fc.77b22",
+        "name": "フロントからの回答",
+        "url": "/registdata",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 80,
+        "wires": [
+            [
+                "5311ead2.e2f6e4",
+                "ef0d5b04.90bd28"
+            ]
+        ]
+    },
+    {
+        "id": "112ebb78.caeb75",
+        "type": "http response",
+        "z": "b8abd5fc.77b22",
+        "name": "フロントへ返答",
+        "statusCode": "",
+        "headers": {
+            "content-type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS"
+        },
+        "x": 780,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "5311ead2.e2f6e4",
+        "type": "debug",
+        "z": "b8abd5fc.77b22",
+        "name": "リクエスト",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 340,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "d2cf6f22.0d6fa",
+        "type": "comment",
+        "z": "b8abd5fc.77b22",
+        "name": "テーブル名、remarksの一致チェック",
+        "info": "",
+        "x": 390,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "c423cab4.b3f358",
+        "type": "MySQLdatabase",
+        "z": "",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "bigDataMediaData",
+        "tz": ""
+    }
+]
